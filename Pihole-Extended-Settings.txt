@@ -1,0 +1,194 @@
+=============================================================================================================================================================================================================================================
+													Pihole Extended Settings
+=============================================================================================================================================================================================================================================
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+													Pihole DNS Cache
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pihole DNS Cache Documentation: https://docs.pi-hole.net/ftldns/dns-cache/
+
+For high-speed and low-latency DNS resolution. The user must edit dnsmasq in order to get low latency and high speed.
+
+ =============================================================
+| Accessing DNSMASQ: sudo nano /etc/dnsmasq.d/01-pihole.conf  |
+ =============================================================
+
+Edit: cache-size from 10000 (default) to 0 (modify)
+
+Then click "ctrl + x" to save.
+
+OR
+
+ ---------------------
+| Permanent Solution: |
+ ---------------------
+
+Code Through Terminal:  nano /etc/pihole/setupVars.conf
+
+Change the "CACHE_SIZE" value from "10000" to "0".
+
+Then Run: 
+
+Code Through Terminal:  pihole -r 
+
+Pick Repair to permanently put DNS Cache 0.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+											Pi-Hole Changing Network Adapters (Only if you are using a laptop)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Finding Network Adapters:
+
+ip addr
+
+=============================================================================================================================================================================================================================================
+
+Change the Pi-Hole Interface (only if you're using a laptop)
+
+Note: It is not recommended to use Wi-Fi for Pi-Hole blocking services.
+
+Ethernet Adapter Name List: (x = variable with a number)
+
+-  eth(x)
+-  enp(x)s0
+
+Wi-Fi Adapter Name List: (x = variable with a number)
+
+-  wlan(x)
+
+=============================================================================================================================================================================================================================================
+
+Disabling the Laptop Closing Lid:
+
+Check if there is a specific address where Lid operates:
+
+cat /proc/acpi/wakeup
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Disabling Laptop Sleep Mode When the Lid is Closed:
+
+
+echo 'PNP0C0D:00' | sudo tee /sys/bus/acpi/drivers/button/unbind
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+														Pihole DNSMASQ
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pihole DNSMASQ Documentation: https://docs.pi-hole.net/ftldns/dns-resolver/#remove-limit-on-maximum-cache-size
+
+For DNSMASQ, we can add more network packets that are allowed to go through the Pi-Hole.
+
+ ====================================================================
+| Accessing the EDNS Packets: sudo nano /etc/dnsmasq.d/99-edns.conf  |
+ ====================================================================
+
+Type in document: 
+
+- edns-packet-max=1472 (default)
+
+or (Following directions from the documentation)
+
+I recommend putting a higher value if you have devices that use Wifi since if you reduce the amount of EDNS packets sent throughout the network, it will cause mobile devices to disconnect from the Wifi at long and short distances from the router or modem. It's recommended to put around 10 billion to 85 billion EDNS packets through since it will fix connection issues and at the same time improve devices getting data packets through.
+
+- 10737418240 (10 billion edns packets)
+
+- 21474836480 (21 billion edns packets)
+
+- 42949672960 (42 billion edns packets)
+
+- 85899345920 (85 billion edns packets)
+
+ --------------
+|   Warning:   |
+ --------------
+
+It's better not to increase beyond 85 trillion EDNS packets since that causes some websites to trip bot detection and stop loading. For example:
+
+- Github
+- Netflix
+- Mircosoft
+- Speedtest
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+													Pihole FTL DNS Configuration
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Pihole FTL Configuration Documentation: https://docs.pi-hole.net/ftldns/configfile/
+
+This list was designed to make the Pihole Web GUI respond and update faster when it comes to changes in Pi-Hole in flight. Without having to delay sending data between the Pi-Hole Web GUI and Pi-Hole's FTL.
+
+ ================================================
+| Editor: sudo nano /etc/pihole/pihole-FTL.conf  |
+ ================================================
+
+RATE_LIMIT=0/0
+PRIVACYLEVEL=0
+NICE=-20
+DELAY_STARTUP=0
+BLOCK_ESNI=false
+MOZILLA_CANARY=false
+REPLY_WHEN_BUSY=BLOCK
+BLOCK_TTL=0
+CHECK_SHMEM=0
+CHECK_DISK=0
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Should Pi-hole always reply with NXDOMAIN to A and AAAA queries of mask.icloud.com and mask-h2.icloud.com to disable Apple's iCloud Private Relay to prevent Apple devices from bypassing Pi-hole. This is following the recommendation on https://developer.apple.com/support/prepare-your-network-for-icloud-private-relay.
+
+- BLOCK_ICLOUD_PR=true
+
+If you have Apple devices that are having issues accessing the internet, then you should use the code below to fix the issues. The Apple devices connecting to Pi-Hole will not connect due to restrictions in Apple's network settings.
+
+- BLOCK_ICLOUD_PR=false
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+For systems with less than 2 cores, I recommend adding "CNAME_DEEP_INSPECT=false" because, depending on how much traffic comes in and out of the Pi-Hole, it will eventually be overloaded. If there are a lot of devices connected to the network.
+
+- CNAME_DEEP_INSPECT=false
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+=============================================================================================================================================================================================================================================
+												Pi-Hole DHCP Server Setup
+=============================================================================================================================================================================================================================================
+
+DHCP is the network protocol that is able to manage all devices by assigning IP addresses, both for IPv4 and IPv6, throughout the network by connecting through WiFi or Ethernet. This makes this network protocol easier to deal with when it comes to assigning IP addresses to networks.
+
+Warning: There is a risk of disabling DHCP on the router, which means the router can't resolve IP addresses for both IPv4 and IPv6. Meaning that if Pi-Hole's DHCP server is down, the router will also go down. In order to reactivate the DHCP server on the router, either you try to reset the CMOS or you try to login to the router to reactivate the DHCP server and be able to do DHCP assignments.
+
+To make Pi-Hole a DHCP server, you must disable DHCP in the router to make this property work.
+
+Step 1: Login into Pi-Hole, then go to "Settings" at the top, click on "DHCP," and click "DHCP server enabled."
+
+Step 2: For data in "Range of IP addresses to hand out," the section "From" value should be above the router's IP address, and the section "To" value should be the maximum of 255.
+
+- For example:
+
+   - Router/Gateway: 192.168.1.1	or	10.0.0.1	or	170.147.8.1
+   - To: 192.168.1.2	 		or 	10.0.0.2	or	170.147.8.2
+   - From : 192.168.1.254	 	or	10.0.0.254	or	170.147.8.254
+
+Step 3: Change the "Router (gateway) IP address" to the modem's or router's IP address. Don't change it unless you are moving Pi-Hole to a different network.
+
+Step 4: In "Advanced DHCP Settings," click on "Enable DHCPv4 Rapid Commit (Fast Address Assignment)" to make it possible to quickly give out IP addresses for IPv4 on devices connecting to the router. Note: If you want to enable "Enable IPv6 Support (SLAAC + RA)", however, you will need to have enabled both unbound configuration and the Pi-Hole DNS server.
+
+Step 5: Go down to the webpage for "DHCP" and click "Save" to save all the data that was written.
+
+Step 6: [Read the warning above] Login to the router and find a setting in the router to disable the DHCP server on it.
+
+Step 7: Check that the DNS servers for both IPv4 and IPv6 are set up for Pi-Hole.
+
+Step 8: Use a device to connect to the router through Ethernet or WiFi to check if the DHCP server is working by seeing if the DNS server is set up for Pi-Hole's IPv4 and/or IPv6. It's recommended to use a Windows device since it gives you both IPv4 and IPv6, since some mobile devices only show IPv4 addresses.
+
+Step 9: If you are able to see it, IPv4 and/or IPv6 means that it is working correctly and the Pi-Hole server is now assigning IP addresses, blocking ads, tracking, etc., allowing the router to just manage traffic.
+
+Step 10: The network should be smoother when it comes to downloading, uploading, reducing resources on all devices, and fixing networking services like Microsoft Outlook to be able to receive email on mobile devices. You could test your network with "speedtest.com" to see if you're getting what you paid for.
+

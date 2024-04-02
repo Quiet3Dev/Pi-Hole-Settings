@@ -1,0 +1,56 @@
+=============================================================================================================================================================================================================================================
+														Installation
+=============================================================================================================================================================================================================================================
+
+ ----------------------------
+|   Installation - Pi-Hole   |
+ ----------------------------
+
+Documentation: https://docs.pi-hole.net/main/basic-install/
+
+Type 1: There are four ways to install Pi-Hole; the simplest is the "One-Step Automated Install," but piping from "bash" is controversial because it prevents reading code from running in the system. There are three other ways to read the code that prevent using "bash". Linux command below:
+
+-   curl -sSL https://install.pi-hole.net | bash
+
+Type 2: Clone the repository and run.
+
+-   git clone --depth 1 https://github.com/pi-hole/pi-hole.git Pi-hole
+-   cd "Pi-hole/automated install/"
+-   sudo bash basic-install.sh
+
+Type 3: This is installed manually by downloading the installer and running it.
+
+-   wget -O basic-install.sh https://install.pi-hole.net
+-   sudo bash basic-install.sh
+
+Type 4: I am putting the URL instead of explaining how to install "Docker" to deploy Pi-hole because there have been many changes and fixes to Pi-hole with "Docker".
+
+-   https://github.com/pi-hole/docker-pi-hole
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Starting the installation:
+
+Step 1: After following the directions for installing Pi-Hole, the installer should give you an IPv4 address, an IPv6 address, and a password to access Pi-Hole. It is recommended that you copy the IPv4 address, IPv6 address, and password somewhere else before you lose access to the installer.
+
+Step 2: If you want to change the password, open "Linux Terminal" and type in "pihole -a -p"  to make a new password.
+
+Step 3: To access Pi-hole, you need to open up your browser and type in the URL of the IPv4 address that was given by the Pi-hole installer. Then, after typing the IPv4 address, you must type " /admin " in order to access the Pi-hole GUI. If you don't type in " /admin " then it will go to a "403 forbidden" error. For example:
+
+-  http://[IPv4 Address]/admin
+
+Step 4: Login to Pi-hole with the new password if you changed it or the old password. You have complete access to the Pihole's firewall.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ -----------------------------------------
+|      After Installation  -  Pi-Hole     |
+ -----------------------------------------
+
+I recommend going to the Pihole extended settings file in order to optimize the firewall towards latency, DNS cache, and configuration.
+
+If you want to use a third-party upstream DNS server or try to use Unbound to make your own DNS server. Finding blocklists and fitlerlists can be found at " https://filterlists.com/ " or through " github.com ".
+
+Type 1: If you are using third-party upstream DNS servers, then you can decide whether to use an adlist or a regex blacklist for the order block type. Or modify Pi-Hole through settings, or try to optimize Liunx towards networking in order to take advantage of the system.
+
+Type 2: If you are going to use Unbound to make your own recursive DNS server, you will need to install and setup Unbound. You will need to go to the Unbound Section in another repository to continue setup for Unbound and Pi-Hole.
